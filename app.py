@@ -66,7 +66,9 @@ def generate():
             "หรือ firewall แล้วลองใหม่อีกครั้ง"
         )
     except (RuntimeError, ValueError, ValidationError) as error:
-        message = f"เกิดข้อผิดพลาด: {error}"
+    message = f"เกิดข้อผิดพลาด: {error}"
+except Exception as error:
+    message = f"เกิดข้อผิดพลาดที่ไม่คาดคิด: {error}"
 
     return render_template(
         "index.html", campaign=None, prompts=None,
