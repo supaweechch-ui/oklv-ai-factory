@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OKLV AI Factory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="page">
+
+    <header class="masthead">
+      <p class="masthead-mono">01 — 30-second advertising, planned scene by scene</p>
+      <h1>OKLV AI Factory</h1>
+      <p class="masthead-sub">
+        กรอกสินค้า กลุ่มเป้าหมาย และจุดขาย แล้วให้ AI สองตัวต่อกัน วางแผนแคมเปญ
+        และเขียน prompt สำหรับสร้างภาพ/วิดีโอให้ครบ 4 ฉาก
+      </p>
+    </header>
+
+    <section class="slate">
+      <form method="POST" action="/generate" class="slate-form" id="campaign-form">
+        <div class="field">
+          <label for="product">สินค้า</label>
+          <input type="text" id="product" name="product" placeholder="เช่น น้ำหอมกลิ่นซิตรัส"
+                 value="{{ form.get('product', '') if form else '' }}" required>
+        </div>
+        <div class="field">
+          <label for="target">กลุ่มเป้าหมาย</label>
+          <input type="text" id="target" name="target" placeholder="เช่น นักเรียนมัธยม"
+                 value="{{ form.get('target', '') if form else '' }}" required>
+        </div>
+        <div class="field">
+          <label for="selling_point">จุดขาย</label>
+          <input type="text" id="selling_point" name="selling_point" placeholder="เช่น ราคาเข้าถึงง่าย"
+                 value="{{ form.get('selling_point', '') if form else '' }}" required>
+        </div>
+        <button type="submit" id="submit-btn">สร้างแคมเปญ</button>
+      </form>
+      <p class="slate-hint" id="loading-hint" hidden>
+        กำลังให้ AI วางแผนโฆษณาและเขียน prompt — ใช้เวลาประมาณครึ่งนาที
+      </p>
+    </section>
+
+    {% if error %}
+    <section class="notice notice-error">
+      <p>{{ error }}</p>
+    </section>
+    {% endif %}
+
+    {% if campaign %}
+    <section class="campaign-summary">
+      <p class="eyebrow-mono">Concept</p>
+      <h2>{{ campaign.concept }}</h2>
+      <dl class="summary-grid">
+        <div>
+          <dt>Key message</dt>
+          <dd>{{ campaign.key_message }}</dd>
+        </div>
+        <div>
+          <dt>Tone</dt>
+          <dd>{{ campaign.tone }}</dd>
+        </div>
+        <div>
+          <dt>ความยาวรวม</dt>
+          <dd>{{ campaign.total_duration }} วินาที</dd>
+        </div>
+      </dl>
+      {% if production_notes %}
+      <p class="production-notes">{{ production_notes }}</p>
+      {% endif %}
+    </section>
+
+    <section class="scenes">
+      {% for scene in campaign.scenes %}
+      {% set prompt = prompts[loop.index0] %}
+      <article class="scene-card">
+        <div class="scene-head">
+          <span class="scene-number">Scene {{ '%02d' % scene.scene_number }}</span>
+          <span class="scene-duration">{{ scene.duration_seconds }}s · {{ prompt.aspect_ratio }}</span>
+        </div>
+        <p class="scene-purpose">{{ scene.purpose }}</p>
+        <p class="scene-description">{{ scene.description }}</p>
+        <p class="scene-dialogue">&ldquo;{{ scene.dialogue }}&rdquo;</p>
+
+        <dl class="prompt-grid">
+          <div>
+            <dt>Image prompt</dt>
+            <dd>{{ prompt.image_prompt }}</dd>
+          </div>
+          <div>
+            <dt>Video prompt</dt>
+            <dd>{{ prompt.video_prompt }}</dd>
+          </div>
+          <div>
+            <dt>Camera</dt>
+            <dd>{{ prompt.camera_direction }}</dd>
+          </div>
+          <div>
+            <dt>Lighting</dt>
+            <dd>{{ prompt.lighting }}</dd>
+          </div>
+          <div>
+            <dt>Character consistency</dt>
+            <dd>{{ prompt.character_consistency }}</dd>
+          </div>
+        </dl>
+      </article>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <footer class="page-footer">
+      <p>OKLV AI Factory · เรียกใช้ Gemini ผ่าน GEMINI_API_KEY บนเซิร์ฟเวอร์</p>
+    </footer>
+
+  </main>
+
+  <script>
+    document.getElementById('campaign-form').addEventListener('submit', function () {
+      document.getElementById('submit-btn').disabled = true;
+      document.getElementById('submit-btn').textContent = 'กำลังสร้าง…';
+      document.getElementById('loading-hint').hidden = false;
+    });
+  </script>
+</body>
+</html>
