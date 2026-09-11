@@ -12,6 +12,7 @@ from google.genai.errors import APIError
 from httpx import RequestError
 from pydantic import ValidationError
 
+from flow_export import build_flow_prompts
 from planner import create_campaign
 from prompt_engine import create_visual_prompts
 
@@ -47,10 +48,12 @@ def generate():
             form["product"], form["target"], form["selling_point"]
         )
         visual_prompts = create_visual_prompts(campaign)
+        flow_prompts = build_flow_prompts(campaign, visual_prompts)
         return render_template(
             "index.html",
             campaign=campaign,
             prompts=visual_prompts.prompts,
+            flow_prompts=flow_prompts,
             production_notes=visual_prompts.production_notes,
             error=None,
             form=form,
